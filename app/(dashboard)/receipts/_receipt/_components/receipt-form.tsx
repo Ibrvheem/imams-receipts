@@ -19,6 +19,7 @@ import { ReceiptPreview } from "./receipt-preview";
 import { ChipField, OptionalField } from "./form-bits";
 import { ItemsEditor } from "./items-editor";
 import { CustomerNameField } from "./customer-name-field";
+import { ContactPickerButton } from "./contact-picker";
 import type { CustomerSuggestion } from "../../service";
 
 type View = "details" | "preview";
@@ -30,16 +31,22 @@ const PAYMENT_STATUS = [
 
 function Panel({
   title,
+  action,
   children,
 }: {
   title: string;
+  /** Shown at the right of the title row. */
+  action?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section className="relative rounded-lg bg-card border border-border p-4 sm:p-5 space-y-4">
-      <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-        {title}
-      </h2>
+      <div className="flex min-h-9 items-center justify-between gap-3">
+        <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+          {title}
+        </h2>
+        {action}
+      </div>
       {children}
     </section>
   );
@@ -200,7 +207,7 @@ export function ReceiptForm({
                 </Collapse>
               </div>
 
-              <Panel title="Customer">
+              <Panel title="Customer" action={<ContactPickerButton />}>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <CustomerNameField />
                   <ControlledInput
