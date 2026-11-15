@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -39,6 +39,15 @@ export const metadata: Metadata = {
   },
 };
 
+// viewportFit "cover" lets the bottom action bar respect the iPhone home
+// indicator via env(safe-area-inset-bottom).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#252525",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -56,10 +65,12 @@ export default function RootLayout({
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster
           theme="dark"
+          // Top on phones so toasts never cover the bottom action bar.
+          position="top-center"
           toastOptions={{
             classNames: {
               toast:
-                "bg-card border border-border text-foreground font-sans rounded-none shadow-none gap-3 !w-96",
+                "bg-card border border-border text-foreground font-sans rounded-none shadow-none gap-3 w-full! sm:w-96!",
               title: "text-sm font-medium",
               description: "text-xs text-muted-foreground",
               icon: "mt-0.5",

@@ -33,6 +33,10 @@ export default function ControlledInput({
   icon,
   rightLink,
   rightAddon,
+  inputMode,
+  enterKeyHint,
+  ariaLabel,
+  autoFocus,
 }: {
   name: string;
   label?: string;
@@ -56,6 +60,13 @@ export default function ControlledInput({
   rightLink?: { label: string; href: string };
   /** Optional decorative element rendered inside the input on the right */
   rightAddon?: ReactNode;
+  /** Which on-screen keyboard phones show, e.g. "decimal" for amounts */
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  /** Label of the keyboard's enter key on phones, e.g. "next" */
+  enterKeyHint?: React.InputHTMLAttributes<HTMLInputElement>["enterKeyHint"];
+  /** Accessible name when the field has no visible label */
+  ariaLabel?: string;
+  autoFocus?: boolean;
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const [hasShownError, setHasShownError] = useState(false);
@@ -119,6 +130,10 @@ export default function ControlledInput({
                   placeholder={placeholder}
                   defaultValue={defaultValue}
                   min={min}
+                  inputMode={inputMode}
+                  enterKeyHint={enterKeyHint}
+                  aria-label={ariaLabel}
+                  autoFocus={autoFocus}
                   type={showPassword ? "text" : type}
                   style={icon ? { paddingLeft: "42px" } : undefined}
                   {...field}
