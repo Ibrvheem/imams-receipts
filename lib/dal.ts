@@ -5,7 +5,7 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { SESSION_COOKIE, hashToken } from "@/lib/session";
+import { SESSION_COOKIE, extendSession, hashToken } from "@/lib/session";
 
 export type CurrentUser = { id: string; email: string; name: string };
 
@@ -17,6 +17,8 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     include: { user: { select: { id: true, email: true, name: true } } },
   });
   if (!session || session.expiresAt < new Date()) return null;
+  // Using the app keeps her signed in (sliding expiry).
+  await extendSession(session.id, session.expiresAt);
   return session.user;
 });
 
