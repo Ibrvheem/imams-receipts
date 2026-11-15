@@ -1,5 +1,8 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="64" height="64" fill="#171717"/>
-  <path d="M32 8L56 32L32 56L8 32Z" fill="#FAFAFA"/>
-  <path d="M32 24L40 32L32 40L24 32Z" fill="#171717"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#0a0a0a"/>
+  <!-- Receipt slip with a zigzag tear edge; sits inside the maskable safe zone -->
+  <path d="M166 120h180a14 14 0 0 1 14 14v248l-24-16-24 16-24-16-24 16-24-16-24 16-24-16-24 16-24-16-24 16V134a14 14 0 0 1 14-14z" fill="#fafafa"/>
+  <text x="256" y="262" text-anchor="middle" font-family="Inter, Helvetica, Arial, sans-serif" font-weight="800" font-size="104" letter-spacing="-2" fill="#0a0a0a">IB</text>
+  <rect x="200" y="290" width="112" height="10" rx="5" fill="#0a0a0a" opacity="0.25"/>
+  <rect x="216" y="314" width="80" height="10" rx="5" fill="#0a0a0a" opacity="0.25"/>
 </svg>

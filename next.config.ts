@@ -8,6 +8,19 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "20mb",
     },
   },
+  // The service worker must never be cached, or updates to it get stuck.
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Content-Security-Policy", value: "default-src 'self'; script-src 'self'" },
+        ],
+      },
+    ];
+  },
   images: {
     // Add the hosts you serve images from (e.g. your S3 buckets or CDN).
     remotePatterns: [

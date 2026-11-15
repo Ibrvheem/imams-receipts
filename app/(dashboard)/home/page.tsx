@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/dal";
 import { getDashboard } from "../receipts/queries";
 import { formatNairaShort } from "../receipts/_receipt/totals";
 import { ReceiptRows } from "../_components/receipt-rows";
+import { InstallHint } from "@/components/pwa";
 
 const count = (n: number, word = "receipt") => `${n} ${word}${n === 1 ? "" : "s"}`;
 
@@ -46,6 +47,8 @@ export default async function HomePage() {
           </Link>
         </Button>
       </header>
+
+      <InstallHint />
 
       <StaggerReveal className="grid grid-cols-2 gap-3">
         {/* Today — the number she checks most */}

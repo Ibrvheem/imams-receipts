@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { APP_NAME, APP_DESCRIPTION } from "@/lib/config";
+import { ServiceWorker } from "@/components/pwa";
 
 // Neutral default font — swap for your brand font here (keep the --font-sans
 // variable name so globals.css picks it up).
@@ -32,6 +33,12 @@ export const metadata: Metadata = {
     description: APP_DESCRIPTION,
     url: siteUrl,
   },
+  // Installed on iPhone: full screen, black status bar, short home-screen name.
+  appleWebApp: {
+    capable: true,
+    title: "IBL Receipts",
+    statusBarStyle: "black",
+  },
   twitter: {
     card: "summary_large_image",
     title: APP_NAME,
@@ -45,7 +52,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#252525",
+  themeColor: "#0a0a0a",
 };
 
 export default function RootLayout({
@@ -63,6 +70,7 @@ export default function RootLayout({
           showSpinner={false}
         />
         <TooltipProvider>{children}</TooltipProvider>
+        <ServiceWorker />
         <Toaster
           theme="dark"
           // Top on phones so toasts never cover the bottom action bar.
