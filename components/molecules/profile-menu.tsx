@@ -14,17 +14,36 @@ import { logOut } from "@/app/(dashboard)/service";
 interface ProfileMenuProps {
   name: string;
   email: string;
+  /** Initials-only trigger for the phone header. */
+  compact?: boolean;
 }
 
-export default function ProfileMenu({ name, email }: ProfileMenuProps) {
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("") || "?";
+
+export default function ProfileMenu({ name, email, compact }: ProfileMenuProps) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex flex-col items-end text-sm outline-none cursor-pointer">
-        <span className="font-semibold leading-tight">{name}</span>
-        <span className="text-xs text-muted-foreground leading-tight">
-          {email}
-        </span>
-      </DropdownMenuTrigger>
+      {compact ? (
+        <DropdownMenuTrigger
+          aria-label="Account"
+          className="flex size-9 items-center justify-center border border-border bg-card text-xs font-semibold tracking-wide outline-none"
+        >
+          {initials(name)}
+        </DropdownMenuTrigger>
+      ) : (
+        <DropdownMenuTrigger className="flex flex-col items-end text-sm outline-none cursor-pointer">
+          <span className="font-semibold leading-tight">{name}</span>
+          <span className="text-xs text-muted-foreground leading-tight">
+            {email}
+          </span>
+        </DropdownMenuTrigger>
+      )}
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuLabel className="flex flex-col gap-0.5">
           <span>{name}</span>
@@ -49,10 +68,8 @@ export default function ProfileMenu({ name, email }: ProfileMenuProps) {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild onClick={() => logOut()}>
-          <button type="submit" className="w-full text-left">
-            Log out
-          </button>
+        <DropdownMenuItem onSelect={() => void logOut()} className="min-h-10">
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

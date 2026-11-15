@@ -129,7 +129,7 @@ export function ReceiptForm({
       </header>
 
       {/* Details / Preview switch — phones and tablets only */}
-      <div className="sticky top-0 z-20 -mx-4 mb-5 bg-background/95 px-4 py-2 backdrop-blur lg:hidden">
+      <div className="sticky top-14 z-20 -mx-4 mb-5 md:top-0 bg-background/95 px-4 py-2 backdrop-blur lg:hidden">
         <div role="tablist" className="grid grid-cols-2 border border-border p-1">
           {(["details", "preview"] as const).map((v) => (
             <button

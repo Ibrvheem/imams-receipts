@@ -187,3 +187,26 @@ export async function searchCustomers(query: string): Promise<CustomerSuggestion
     take: 5,
   });
 }
+
+/** Adds a payment towards a receipt's balance (never above the total). */
+export async function recordPayment(id: string, amount: number) {
+  await requireUser();
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { success: false as const, message: "Enter an amount above ₦0." };
+  }
+  const receipt = await prisma.receipt.findUnique({
+    where: { id },
+    select: { total: true, amountPaid: true },
+  });
+  if (!receipt) return { success: false as const, message: "This receipt no longer exists." };
+
+  const total = Number(receipt.total);
+  const paid = Math.min(Number(receipt.amountPaid) + Math.round(amount * 100) / 100, total);
+  const balance = Math.round((total - paid) * 100) / 100;
+  await prisma.receipt.update({
+    where: { id },
+    data: { amountPaid: paid, balance, partPayment: balance > 0 },
+  });
+  revalidatePath("/", "layout");
+  return { success: true as const, balance };
+}

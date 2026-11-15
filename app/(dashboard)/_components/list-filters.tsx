@@ -68,70 +68,63 @@ export function SearchBox({ placeholder }: { placeholder: string }) {
 
 const STATUS = [
   { label: "All", value: null },
-  { label: "Paid", value: "paid" },
   { label: "Owing", value: "owing" },
+  { label: "Paid", value: "paid" },
 ] as const;
 
 const RANGES = [
-  { label: "Any time", value: null },
   { label: "Today", value: "today" },
   { label: "This week", value: "week" },
   { label: "This month", value: "month" },
 ] as const;
 
-function Chips<T extends string | null>({
-  options,
-  active,
-  onPick,
-  label,
-}: {
-  options: readonly { label: string; value: T }[];
-  active: string | null;
-  onPick: (v: T) => void;
-  label: string;
-}) {
-  return (
-    <div role="radiogroup" aria-label={label} className="flex gap-1.5 overflow-x-auto">
-      {options.map((o) => {
-        const selected = (o.value ?? null) === active;
-        return (
-          <button
-            key={o.label}
-            type="button"
-            role="radio"
-            aria-checked={selected}
-            onClick={() => onPick(o.value)}
-            className={cn(
-              "min-h-10 shrink-0 border px-3 text-sm transition-colors",
-              selected
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {o.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
+const CHIP =
+  "min-h-10 shrink-0 border px-3.5 text-sm whitespace-nowrap transition-colors";
+const chipState = (on: boolean) =>
+  on
+    ? "border-primary bg-primary text-primary-foreground"
+    : "border-border text-muted-foreground hover:text-foreground active:bg-muted";
 
+/**
+ * Status and date filters in one row that scrolls sideways on phones.
+ * Tapping the active date chip again clears it.
+ */
 export function ReceiptFilters() {
   const { params, set } = useUrlParams();
+  const status = params.get("status");
+  const range = params.get("range");
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
-      <Chips
-        label="Payment status"
-        options={STATUS}
-        active={params.get("status")}
-        onPick={(v) => set({ status: v })}
-      />
-      <Chips
-        label="Date range"
-        options={RANGES}
-        active={params.get("range")}
-        onPick={(v) => set({ range: v })}
-      />
+    <div className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:px-0">
+      <div className="flex w-max items-center gap-1.5">
+        <div role="radiogroup" aria-label="Payment status" className="flex gap-1.5">
+          {STATUS.map((o) => (
+            <button
+              key={o.label}
+              type="button"
+              role="radio"
+              aria-checked={(o.value ?? null) === status}
+              onClick={() => set({ status: o.value })}
+              className={cn(CHIP, chipState((o.value ?? null) === status))}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+        <span aria-hidden className="mx-1.5 h-6 w-px shrink-0 bg-border" />
+        <div role="group" aria-label="Date range" className="flex gap-1.5">
+          {RANGES.map((o) => (
+            <button
+              key={o.label}
+              type="button"
+              aria-pressed={range === o.value}
+              onClick={() => set({ range: range === o.value ? null : o.value })}
+              className={cn(CHIP, chipState(range === o.value))}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

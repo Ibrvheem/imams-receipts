@@ -1,91 +1,119 @@
 import Link from "next/link";
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CornerAccents } from "@/components/ui/corner-accents";
 import { StaggerItem, StaggerReveal } from "@/components/motion/stagger-reveal";
 import { requireUser } from "@/lib/dal";
 import { getDashboard } from "../receipts/queries";
-import { formatNaira } from "../receipts/_receipt/totals";
+import { formatNairaShort } from "../receipts/_receipt/totals";
 import { ReceiptRows } from "../_components/receipt-rows";
 
-function Stat({
-  label,
-  amount,
-  sub,
-  href,
-  accent = "primary",
-}: {
-  label: string;
-  amount: number;
-  sub: string;
-  href: string;
-  accent?: "primary" | "gold";
-}) {
+const count = (n: number, word = "receipt") => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+function greeting() {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: "Africa/Lagos" }).format(new Date()),
+  );
+  return hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+}
+
+function SmallStat({ label, amount, sub, href }: { label: string; amount: number; sub: string; href: string }) {
   return (
     <Link
       href={href}
-      className="relative flex h-full flex-col gap-1 border border-border bg-card p-4 inset-highlight hover-lift transition-colors hover:border-primary/30"
+      className="relative flex h-full flex-col gap-0.5 border border-border bg-card p-4 transition-colors hover:border-primary/30 active:bg-muted/60"
     >
       <CornerAccents />
       <span className="text-xs uppercase tracking-wide text-muted-foreground">{label}</span>
-      <span
-        className={
-          accent === "gold"
-            ? "truncate text-lg font-semibold tabular-nums text-gold sm:text-xl"
-            : "truncate text-lg font-semibold tabular-nums text-primary sm:text-xl"
-        }
-      >
-        {formatNaira(amount)}
-      </span>
+      <span className="truncate text-lg font-semibold tabular-nums">{formatNairaShort(amount)}</span>
       <span className="text-xs text-muted-foreground">{sub}</span>
     </Link>
   );
 }
-
-const count = (n: number, word = "receipt") => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export default async function HomePage() {
   const [user, d] = await Promise.all([requireUser(), getDashboard()]);
   const first = user.name.split(" ")[0];
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-8">
+    <div className="mx-auto w-full max-w-3xl space-y-7">
       <header className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-sm text-muted-foreground">Welcome back,</p>
-          <h1 className="truncate text-xl font-semibold sm:text-2xl">{first}</h1>
+          <p className="text-sm text-muted-foreground">{greeting()},</p>
+          <h1 className="truncate text-2xl font-semibold">{first}</h1>
         </div>
-        <Button asChild className="cta-btn h-11">
+        <Button asChild className="cta-btn hidden h-11 md:inline-flex">
           <Link href="/receipts/new">
             <Plus /> New receipt
           </Link>
         </Button>
       </header>
 
-      <StaggerReveal className="grid grid-cols-2 gap-3 sm:gap-4">
-        <StaggerItem className="h-full">
-          <Stat label="Today" amount={d.today.amount} sub={count(d.today.count)} href="/receipts?range=today" />
+      <StaggerReveal className="grid grid-cols-2 gap-3">
+        {/* Today — the number she checks most */}
+        <StaggerItem className="col-span-2">
+          <Link
+            href="/receipts?range=today"
+            className="relative flex items-end justify-between gap-4 border border-border border-t-2 border-t-primary bg-card p-5 inset-highlight transition-colors active:bg-muted/60"
+          >
+            <CornerAccents />
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Sales today</p>
+              <p className="truncate text-3xl font-semibold tabular-nums">{formatNairaShort(d.today.amount)}</p>
+              <p className="text-sm text-muted-foreground">{count(d.today.count)}</p>
+            </div>
+            <ArrowRight className="mb-1 size-5 shrink-0 text-muted-foreground" />
+          </Link>
         </StaggerItem>
         <StaggerItem className="h-full">
-          <Stat label="This week" amount={d.week.amount} sub={count(d.week.count)} href="/receipts?range=week" />
+          <SmallStat label="This week" amount={d.week.amount} sub={count(d.week.count)} href="/receipts?range=week" />
         </StaggerItem>
         <StaggerItem className="h-full">
-          <Stat label="This month" amount={d.month.amount} sub={count(d.month.count)} href="/receipts?range=month" />
-        </StaggerItem>
-        <StaggerItem className="h-full">
-          <Stat
-            label="Owed to you"
-            amount={d.owing.amount}
-            sub={count(d.owing.count, "unpaid receipt")}
-            href="/receipts?status=owing"
-            accent="gold"
-          />
+          <SmallStat label="This month" amount={d.month.amount} sub={count(d.month.count)} href="/receipts?range=month" />
         </StaggerItem>
       </StaggerReveal>
 
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+      {d.owing.count > 0 && (
+        <section className="space-y-2">
+          <div className="flex items-baseline justify-between px-1">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              Owed to you
+            </h2>
+            <span className="text-sm font-semibold text-gold tabular-nums">
+              {formatNairaShort(d.owing.amount)}
+            </span>
+          </div>
+          <ul className="relative divide-y divide-border border border-gold/25 bg-gold/5">
+            <CornerAccents />
+            {d.debtors.map((x) => (
+              <li key={`${x.customerId}-${x.name}`}>
+                <Link
+                  href={x.customerId ? `/customers/${x.customerId}` : `/receipts?status=owing&q=${encodeURIComponent(x.name)}`}
+                  className="flex min-h-14 items-center gap-3 px-4 py-2.5 transition-colors active:bg-gold/10"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium">{x.name}</span>
+                    <span className="block text-xs text-muted-foreground">{count(x.receipts, "unpaid receipt")}</span>
+                  </span>
+                  <span className="shrink-0 font-semibold text-gold tabular-nums">{formatNairaShort(x.amount)}</span>
+                  <ChevronRight className="-mr-1 size-4 shrink-0 text-muted-foreground/60" />
+                </Link>
+              </li>
+            ))}
+            {d.owing.count > d.debtors.reduce((s, x) => s + x.receipts, 0) && (
+              <li>
+                <Link href="/receipts?status=owing" className="flex min-h-12 items-center justify-center gap-1 text-sm text-muted-foreground">
+                  See all unpaid <ArrowRight className="size-4" />
+                </Link>
+              </li>
+            )}
+          </ul>
+        </section>
+      )}
+
+      <section className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
             Recent receipts
           </h2>
           {d.recent.length > 0 && (
@@ -97,12 +125,14 @@ export default async function HomePage() {
         <ReceiptRows
           rows={d.recent}
           empty={
-            <>
-              No receipts yet.{" "}
-              <Link href="/receipts/new" className="text-primary underline-offset-4 hover:underline">
-                Create your first one
-              </Link>
-            </>
+            <div className="space-y-3">
+              <p>No receipts yet.</p>
+              <Button asChild className="cta-btn h-11">
+                <Link href="/receipts/new">
+                  <Plus /> Create your first receipt
+                </Link>
+              </Button>
+            </div>
           }
         />
       </section>

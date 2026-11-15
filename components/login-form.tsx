@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CornerAccents } from "@/components/ui/corner-accents";
 import { Form } from "@/components/ui/form";
 import ControlledInput from "@/components/molecules/controlled-input";
+import { BUSINESS } from "@/lib/config";
 
 const LABEL_CLS =
   "text-[11px] uppercase tracking-[0.14em] font-semibold text-muted-foreground";
@@ -20,6 +21,10 @@ export function SignInForm({ callbackUrl }: { callbackUrl?: string }) {
       <CornerAccents />
 
       <div className="px-[36px] pt-[10px] pb-1">
+        {/* Brand — the side panel that carries it is hidden on phones */}
+        <p className="mb-8 text-xs font-black uppercase tracking-[0.24em] text-foreground md:hidden">
+          {BUSINESS.name}
+        </p>
         {/* Title */}
         <h2
           className="m-0 text-[26px] font-black text-foreground"

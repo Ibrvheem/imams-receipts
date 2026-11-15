@@ -153,7 +153,7 @@ export async function getDashboard() {
       _sum: { total: true },
       _count: true,
     });
-  const [day, week, month, owing, recent] = await Promise.all([
+  const [day, week, month, owing, recent, debtors] = await Promise.all([
     sales(today),
     sales(startOfWeek(today)),
     sales(startOfMonth(today)),
@@ -167,6 +167,15 @@ export async function getDashboard() {
       orderBy: [{ date: "desc" }, { createdAt: "desc" }],
       take: 6,
     }),
+    // Who owes the most, for the "Owed to you" card.
+    prisma.receipt.groupBy({
+      by: ["customerId", "customerName"],
+      where: { balance: { gt: 0 } },
+      _sum: { balance: true },
+      _count: true,
+      orderBy: { _sum: { balance: "desc" } },
+      take: 4,
+    }),
   ]);
   const stat = (a: typeof day) => ({
     amount: Number(a._sum.total ?? 0),
@@ -178,5 +187,11 @@ export async function getDashboard() {
     month: stat(month),
     owing: { amount: Number(owing._sum.balance ?? 0), count: owing._count },
     recent: recent.map(toRow),
+    debtors: debtors.map((d) => ({
+      customerId: d.customerId,
+      name: d.customerName,
+      amount: Number(d._sum.balance ?? 0),
+      receipts: d._count,
+    })),
   };
 }

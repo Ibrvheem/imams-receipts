@@ -2,9 +2,13 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { CornerAccents } from "@/components/ui/corner-accents";
 import { listCustomers } from "./queries";
-import { formatNaira } from "../receipts/_receipt/totals";
+import { formatNairaShort } from "../receipts/_receipt/totals";
+
 import { Pager } from "../_components/pager";
 import { SearchBox } from "../_components/list-filters";
+
+const initials = (name: string) =>
+  name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
 
 export default async function CustomersPage({
   searchParams,
@@ -26,7 +30,7 @@ export default async function CustomersPage({
       <SearchBox placeholder="Search name or phone" />
 
       {result.rows.length === 0 ? (
-        <div className="border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+        <div className="border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
           {sp.q ? "No customers match that search." : "No customers yet. They're added when you save a receipt."}
         </div>
       ) : (
@@ -36,8 +40,16 @@ export default async function CustomersPage({
             <li key={c.id}>
               <Link
                 href={`/customers/${c.id}`}
-                className="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
+                className="flex min-h-16 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50 active:bg-muted/70"
               >
+                <span
+                  aria-hidden
+                  className={`flex size-10 shrink-0 items-center justify-center border text-xs font-semibold ${
+                    c.owing > 0 ? "border-gold/30 bg-gold/10 text-gold" : "border-border bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {initials(c.name)}
+                </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{c.name}</p>
                   <p className="truncate text-xs text-muted-foreground tabular-nums">
@@ -46,13 +58,13 @@ export default async function CustomersPage({
                       .join(" · ")}
                   </p>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-1">
-                  <span className="font-semibold tabular-nums">{formatNaira(c.spent)}</span>
+                <div className="flex shrink-0 flex-col items-end gap-0.5">
+                  <span className="font-semibold tabular-nums">{formatNairaShort(c.spent)}</span>
                   {c.owing > 0 && (
-                    <span className="text-xs text-gold tabular-nums">Owes {formatNaira(c.owing)}</span>
+                    <span className="text-xs text-gold tabular-nums">Owes {formatNairaShort(c.owing)}</span>
                   )}
                 </div>
-                <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                <ChevronRight className="-mr-1 size-4 shrink-0 text-muted-foreground/60" />
               </Link>
             </li>
           ))}

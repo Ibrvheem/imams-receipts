@@ -13,6 +13,16 @@ const naira = new Intl.NumberFormat("en-NG", {
 
 export const formatNaira = (value: number) => naira.format(value);
 
+const nairaWhole = new Intl.NumberFormat("en-NG", {
+  style: "currency",
+  currency: "NGN",
+  maximumFractionDigits: 0,
+});
+
+/** For lists and stats: drops ".00" on whole amounts (kobo still shows). */
+export const formatNairaShort = (value: number) =>
+  Number.isInteger(value) ? nairaWhole.format(value) : naira.format(value);
+
 type LineLike = { quantity?: unknown; unitPrice?: unknown } | undefined;
 
 export function lineTotal(item: LineLike) {

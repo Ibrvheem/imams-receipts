@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { startOfMonth, startOfWeek, todayInLagos } from "@/lib/dates";
 import { listReceipts } from "./queries";
-import { formatNaira } from "./_receipt/totals";
+import { formatNairaShort } from "./_receipt/totals";
 import { ReceiptRows } from "../_components/receipt-rows";
 import { Pager } from "../_components/pager";
 import { ReceiptFilters, SearchBox } from "../_components/list-filters";
@@ -40,25 +40,27 @@ export default async function ReceiptsPage({
           <h1 className="text-xl font-semibold sm:text-2xl">Receipts</h1>
           <p className="text-sm text-muted-foreground tabular-nums">
             {result.total} {result.total === 1 ? "receipt" : "receipts"} ·{" "}
-            {formatNaira(result.sumTotal)}
+            {formatNairaShort(result.sumTotal)}
             {result.sumBalance > 0 && (
-              <span className="text-gold"> · {formatNaira(result.sumBalance)} owed</span>
+              <span className="text-gold"> · {formatNairaShort(result.sumBalance)} owed</span>
             )}
           </p>
         </div>
-        <Button asChild className="cta-btn h-11">
+        {/* Phones use the + in the tab bar */}
+        <Button asChild className="cta-btn hidden h-11 md:inline-flex">
           <Link href="/receipts/new">
             <Plus /> New
           </Link>
         </Button>
       </header>
 
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         <SearchBox placeholder="Search name, phone or receipt no." />
         <ReceiptFilters />
       </div>
 
       <ReceiptRows
+        grouped
         rows={result.rows}
         empty={
           filtered ? (
