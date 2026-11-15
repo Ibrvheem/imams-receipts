@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { CornerAccents } from "@/components/ui/corner-accents";
 
 // Shared typographic primitives for the policy pages (no typography plugin in use).
 
@@ -59,8 +58,7 @@ export function Callout({ children }: { children: ReactNode }) {
 // Bordered card for company / contact details.
 export function InfoBox({ children }: { children: ReactNode }) {
   return (
-    <div className="relative my-4 bg-card border border-border p-5 text-sm text-muted-foreground space-y-1">
-      <CornerAccents />
+    <div className="relative my-4 rounded-lg bg-card border border-border p-5 text-sm text-muted-foreground space-y-1">
       {children}
     </div>
   );
@@ -70,7 +68,6 @@ export function InfoBox({ children }: { children: ReactNode }) {
 export function ContactBox({ children }: { children: ReactNode }) {
   return (
     <div className="relative my-4 bg-primary/10 border border-primary/30 p-5 text-sm text-foreground space-y-1">
-      <CornerAccents />
       {children}
     </div>
   );

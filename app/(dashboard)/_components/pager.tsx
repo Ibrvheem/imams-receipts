@@ -42,4 +42,4 @@ export function Pager({
 }
 
 const BTN =
-  "inline-flex min-h-11 items-center gap-1 border border-border px-3 text-sm transition-colors hover:bg-muted";
+  "inline-flex min-h-11 items-center gap-1 rounded-md border border-border px-3 text-sm transition-colors hover:bg-muted";

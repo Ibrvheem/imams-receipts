@@ -32,7 +32,7 @@ export default function ProfileMenu({ name, email, compact }: ProfileMenuProps) 
       {compact ? (
         <DropdownMenuTrigger
           aria-label="Account"
-          className="flex size-9 items-center justify-center border border-border bg-card text-xs font-semibold tracking-wide outline-none"
+          className="flex size-9 items-center justify-center rounded-md border border-border bg-card text-xs font-semibold tracking-wide outline-none"
         >
           {initials(name)}
         </DropdownMenuTrigger>

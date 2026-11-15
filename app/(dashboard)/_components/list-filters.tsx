@@ -79,7 +79,7 @@ const RANGES = [
 ] as const;
 
 const CHIP =
-  "min-h-10 shrink-0 border px-3.5 text-sm whitespace-nowrap transition-colors";
+  "min-h-10 shrink-0 rounded-md border px-3.5 text-sm whitespace-nowrap transition-colors";
 const chipState = (on: boolean) =>
   on
     ? "border-primary bg-primary text-primary-foreground"

@@ -88,7 +88,7 @@ export function RecordPayment({ id, balance }: { id: string; balance: number }) 
             <button
               type="button"
               onClick={() => setAmount(String(balance))}
-              className="min-h-10 border border-border px-3 text-sm text-muted-foreground transition-colors hover:text-foreground active:bg-muted"
+              className="min-h-10 rounded-md border border-border px-3 text-sm text-muted-foreground transition-colors hover:text-foreground active:bg-muted"
             >
               Full balance
             </button>
@@ -96,7 +96,7 @@ export function RecordPayment({ id, balance }: { id: string; balance: number }) 
               <button
                 type="button"
                 onClick={() => setAmount(String(Math.round(balance / 2)))}
-                className="min-h-10 border border-border px-3 text-sm text-muted-foreground transition-colors hover:text-foreground active:bg-muted"
+                className="min-h-10 rounded-md border border-border px-3 text-sm text-muted-foreground transition-colors hover:text-foreground active:bg-muted"
               >
                 Half
               </button>

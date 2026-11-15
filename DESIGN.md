@@ -2,7 +2,7 @@
 
 ## Identity
 - **Font**: Geist (neutral default) — swap in `app/layout.tsx`; keep the `--font-sans` variable name
-- **Border radius**: `0rem` everywhere — all corners are sharp, never add `rounded-*`
+- **Border radius**: `--radius: 0.5rem` — slightly rounded. Cards, lists and panels use `rounded-lg`; chips, small buttons and avatars use `rounded-md`. Lists with row hover backgrounds also need `overflow-hidden`.
 - **Primary color**: neutral near-white on dark — swap the `--primary` (and `--sidebar-primary`) tokens in `globals.css` for your brand color
 
 ## Semantic Color Tokens
@@ -26,7 +26,7 @@ Use `/10` and `/20` opacity variants for badge backgrounds and borders:
 `components/ui/corner-accents.tsx`
 
 White L-shaped corner brackets drawn via a single CSS background-gradient span.
-Use on cards, stat boxes, panels, and any bordered container that warrants premium feel.
+**Not used in this app** (removed in favour of rounded corners); kept only for reference.
 
 ```tsx
 import { CornerAccents } from "@/components/ui/corner-accents";
@@ -76,16 +76,14 @@ Use for grids and lists that benefit from a staggered entrance (60ms per item, f
 
 ### Standard card
 ```tsx
-<div className="relative bg-card border border-border">
-  <CornerAccents />
+<div className="relative rounded-lg bg-card border border-border">
   ...
 </div>
 ```
 
 ### Interactive card (hover-lift)
 ```tsx
-<div className="relative bg-card border border-border hover-lift hover:border-primary/30 transition-colors">
-  <CornerAccents />
+<div className="relative rounded-lg bg-card border border-border hover-lift hover:border-primary/30 transition-colors">
   ...
 </div>
 ```
@@ -113,3 +111,9 @@ Scope it to the image wrapper:
   </div>
 </div>
 ```
+
+## Phone navigation
+- Bottom tab bar (`components/mobile-nav.tsx`) holds places only: Home, Receipts, Customers.
+- The main action, New receipt, is a floating pill above the tab bar, not a tab.
+- Swiping left/right on a tab page moves between those tabs (`components/swipe-tabs.tsx`).
+  Mark any sideways-draggable area with `data-no-swipe` (horizontal scrollers are detected automatically).

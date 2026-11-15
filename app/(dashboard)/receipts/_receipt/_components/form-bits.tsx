@@ -40,7 +40,7 @@ export function ChipField<T extends string | boolean>({
               aria-checked={selected}
               onClick={() => field.onChange(option.value)}
               className={cn(
-                "min-h-11 border px-2 text-sm font-medium transition-colors",
+                "min-h-11 rounded-md border px-2 text-sm font-medium transition-colors",
                 selected
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border text-muted-foreground hover:border-border-hi hover:text-foreground",

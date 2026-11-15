@@ -63,7 +63,7 @@ export function ItemsEditor({
               <CollapseBody key={field.id} animateIn className="pb-2">
                 <div
                   className={cn(
-                    "border bg-background/40 transition-colors",
+                    "rounded-lg border bg-background/40 transition-colors",
                     hasError && !open ? "border-loss/60" : "border-border",
                   )}
                 >

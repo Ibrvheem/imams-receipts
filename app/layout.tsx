@@ -70,7 +70,7 @@ export default function RootLayout({
           toastOptions={{
             classNames: {
               toast:
-                "bg-card border border-border text-foreground font-sans rounded-none shadow-none gap-3 w-full! sm:w-96!",
+                "bg-card border border-border text-foreground font-sans rounded-lg shadow-none gap-3 w-full! sm:w-96!",
               title: "text-sm font-medium",
               description: "text-xs text-muted-foreground",
               icon: "mt-0.5",

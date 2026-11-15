@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { CornerAccents } from "@/components/ui/corner-accents";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -109,8 +108,7 @@ export function ReceiptView({
           </DropdownMenu>
         </header>
 
-        <div className="relative grid grid-cols-2 border border-border bg-card">
-          <CornerAccents />
+        <div className="relative grid grid-cols-2 overflow-hidden rounded-lg border border-border bg-card">
           <div className="border-r border-border p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Total</p>
             <p className="truncate text-lg font-semibold tabular-nums">{formatNaira(receipt.total)}</p>

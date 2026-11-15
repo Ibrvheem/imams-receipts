@@ -7,7 +7,6 @@ import { Loader2, Pencil, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { CornerAccents } from "@/components/ui/corner-accents";
 import ControlledInput from "@/components/molecules/controlled-input";
 import ControlledTextarea from "@/components/molecules/controlled-textarea";
 import ControlledDateTimePicker from "@/components/molecules/controlled-date-picker";
@@ -37,8 +36,7 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="relative bg-card border border-border p-4 sm:p-5 space-y-4">
-      <CornerAccents />
+    <section className="relative rounded-lg bg-card border border-border p-4 sm:p-5 space-y-4">
       <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
         {title}
       </h2>
@@ -130,7 +128,7 @@ export function ReceiptForm({
 
       {/* Details / Preview switch — phones and tablets only */}
       <div className="sticky top-14 z-20 -mx-4 mb-5 md:top-0 bg-background/95 px-4 py-2 backdrop-blur lg:hidden">
-        <div role="tablist" className="grid grid-cols-2 border border-border p-1">
+        <div role="tablist" className="grid grid-cols-2 rounded-lg border border-border p-1">
           {(["details", "preview"] as const).map((v) => (
             <button
               key={v}
@@ -139,7 +137,7 @@ export function ReceiptForm({
               aria-selected={view === v}
               onClick={() => switchTo(v)}
               className={cn(
-                "min-h-11 text-sm font-medium capitalize transition-colors",
+                "min-h-11 rounded-md text-sm font-medium capitalize transition-colors",
                 view === v
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground",
@@ -165,7 +163,7 @@ export function ReceiptForm({
             >
               {/* Receipt no. (auto, never editable) + date (editable via "Edit date") */}
               <div>
-                <div className="flex min-h-11 items-center justify-between gap-3 border border-border px-4 text-sm">
+                <div className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border px-4 text-sm">
                   <p className="min-w-0 truncate text-muted-foreground">
                     <span className="font-medium text-foreground tabular-nums">
                       {values.receiptNumber || "—"}
@@ -189,7 +187,7 @@ export function ReceiptForm({
                   </button>
                 </div>
                 <Collapse open={editingMeta}>
-                  <div className="border border-t-0 border-border p-4">
+                  <div className="mt-2 rounded-lg border border-border p-4">
                     <ControlledDateTimePicker
                       name="date"
                       label="Date"

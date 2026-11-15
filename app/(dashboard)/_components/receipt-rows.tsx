@@ -1,7 +1,6 @@
 import Link from "next/link";
 import dayjs from "dayjs";
 import { ChevronRight } from "lucide-react";
-import { CornerAccents } from "@/components/ui/corner-accents";
 import { todayInLagos } from "@/lib/dates";
 import { formatNairaShort } from "../receipts/_receipt/totals";
 import type { ReceiptRow } from "../receipts/queries";
@@ -14,7 +13,7 @@ export function StatusBadge({ balance }: { balance: number }) {
     </span>
   ) : (
     <span className="inline-flex items-center gap-1 text-xs text-win whitespace-nowrap">
-      <span className="size-1.5 bg-win" aria-hidden /> Paid
+      <span className="size-1.5 rounded-full bg-win" aria-hidden /> Paid
     </span>
   );
 }
@@ -49,7 +48,7 @@ function Row({ r, title, subtitle }: { r: ReceiptRow; title: string; subtitle: s
   );
 }
 
-const LIST = "relative divide-y divide-border border border-border bg-card";
+const LIST = "relative divide-y divide-border overflow-hidden rounded-lg border border-border bg-card";
 
 /**
  * Receipts as tappable rows. `grouped` puts them under day headings
@@ -68,7 +67,7 @@ export function ReceiptRows({
 }) {
   if (!rows.length) {
     return (
-      <div className="border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
+      <div className="rounded-lg border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
         {empty}
       </div>
     );
@@ -80,7 +79,6 @@ export function ReceiptRows({
   if (!grouped) {
     return (
       <ul className={LIST}>
-        <CornerAccents />
         {rows.map((r) => (
           <Row
             key={r.id}
@@ -113,7 +111,6 @@ export function ReceiptRows({
               </span>
             </h3>
             <ul className={LIST}>
-              <CornerAccents />
               {g.rows.map((r) => (
                 <Row
                   key={r.id}

@@ -3,7 +3,6 @@
 import { ArrowRight, Lock, Mail } from "lucide-react";
 import { useSignIn } from "@/app/(auth)/sign-in/_hooks/use-sign-in";
 import { Button } from "@/components/ui/button";
-import { CornerAccents } from "@/components/ui/corner-accents";
 import { Form } from "@/components/ui/form";
 import ControlledInput from "@/components/molecules/controlled-input";
 import { BUSINESS } from "@/lib/config";
@@ -18,7 +17,6 @@ export function SignInForm({ callbackUrl }: { callbackUrl?: string }) {
 
   return (
     <div className="relative w-full max-w-120 px-1 py-2">
-      <CornerAccents />
 
       <div className="px-[36px] pt-[10px] pb-1">
         {/* Brand — the side panel that carries it is hidden on phones */}

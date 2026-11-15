@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { CornerAccents } from "@/components/ui/corner-accents";
 import { listCustomers } from "./queries";
 import { formatNairaShort } from "../receipts/_receipt/totals";
 
@@ -30,12 +29,11 @@ export default async function CustomersPage({
       <SearchBox placeholder="Search name or phone" />
 
       {result.rows.length === 0 ? (
-        <div className="border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
+        <div className="rounded-lg border border-dashed border-border px-6 py-10 text-center text-sm text-muted-foreground">
           {sp.q ? "No customers match that search." : "No customers yet. They're added when you save a receipt."}
         </div>
       ) : (
-        <ul className="relative divide-y divide-border border border-border bg-card">
-          <CornerAccents />
+        <ul className="relative divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
           {result.rows.map((c) => (
             <li key={c.id}>
               <Link
@@ -44,7 +42,7 @@ export default async function CustomersPage({
               >
                 <span
                   aria-hidden
-                  className={`flex size-10 shrink-0 items-center justify-center border text-xs font-semibold ${
+                  className={`flex size-10 shrink-0 items-center justify-center rounded-md border text-xs font-semibold ${
                     c.owing > 0 ? "border-gold/30 bg-gold/10 text-gold" : "border-border bg-muted text-muted-foreground"
                   }`}
                 >

@@ -74,7 +74,7 @@ export function CustomerNameField() {
         <ul
           role="listbox"
           aria-label="Saved customers"
-          className="absolute inset-x-0 top-full z-30 mt-1 border border-border bg-popover shadow-lg"
+          className="absolute inset-x-0 top-full z-30 mt-1 overflow-hidden rounded-lg border border-border bg-popover shadow-lg"
         >
           {visible.map((c) => (
             <li key={c.id}>

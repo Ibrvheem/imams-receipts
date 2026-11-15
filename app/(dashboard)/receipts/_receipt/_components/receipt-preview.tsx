@@ -100,7 +100,7 @@ export function ReceiptPreview({ receipt }: { receipt: ReceiptDraft }) {
   return (
     <div
       ref={outer}
-      className="mx-auto w-full overflow-hidden bg-white shadow-[0_24px_64px_oklch(0_0_0/0.5)]"
+      className="mx-auto w-full overflow-hidden rounded-md bg-white shadow-[0_24px_64px_oklch(0_0_0/0.5)]"
       style={{
         maxWidth: `${A4.width}pt`,
         height: fit?.height,

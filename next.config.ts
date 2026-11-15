@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The floating dev badge sits on top of the phone tab bar.
+  devIndicators: false,
   experimental: {
     serverActions: {
       bodySizeLimit: "20mb",

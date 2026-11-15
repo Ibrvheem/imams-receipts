@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 /** Placeholder rows shaped like ReceiptRows / customer rows. */
 export function RowsSkeleton({ rows = 5, avatar = false }: { rows?: number; avatar?: boolean }) {
   return (
-    <div className="divide-y divide-border border border-border bg-card">
+    <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex min-h-16 items-center gap-3 px-4 py-3">
           {avatar && <Skeleton className="size-10 shrink-0" />}

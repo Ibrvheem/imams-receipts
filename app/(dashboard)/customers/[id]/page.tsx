@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageCircle, Phone, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CornerAccents } from "@/components/ui/corner-accents";
 import { getCustomer } from "../queries";
 import { listReceipts } from "../../receipts/queries";
 import { formatNairaShort } from "../../receipts/_receipt/totals";
@@ -72,8 +71,7 @@ export default async function CustomerPage({
         </Button>
       </div>
 
-      <div className="relative grid grid-cols-3 border border-border bg-card">
-        <CornerAccents />
+      <div className="relative grid grid-cols-3 overflow-hidden rounded-lg border border-border bg-card">
         {stats.map((s, i) => (
           <div key={s.label} className={i < 2 ? "min-w-0 border-r border-border p-3 sm:p-4" : "min-w-0 p-3 sm:p-4"}>
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{s.label}</p>

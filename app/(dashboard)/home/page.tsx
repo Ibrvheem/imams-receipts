@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, ChevronRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CornerAccents } from "@/components/ui/corner-accents";
 import { StaggerItem, StaggerReveal } from "@/components/motion/stagger-reveal";
 import { requireUser } from "@/lib/dal";
 import { getDashboard } from "../receipts/queries";
@@ -21,9 +20,8 @@ function SmallStat({ label, amount, sub, href }: { label: string; amount: number
   return (
     <Link
       href={href}
-      className="relative flex h-full flex-col gap-0.5 border border-border bg-card p-4 transition-colors hover:border-primary/30 active:bg-muted/60"
+      className="relative flex h-full flex-col gap-0.5 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/30 active:bg-muted/60"
     >
-      <CornerAccents />
       <span className="text-xs uppercase tracking-wide text-muted-foreground">{label}</span>
       <span className="truncate text-lg font-semibold tabular-nums">{formatNairaShort(amount)}</span>
       <span className="text-xs text-muted-foreground">{sub}</span>
@@ -54,9 +52,8 @@ export default async function HomePage() {
         <StaggerItem className="col-span-2">
           <Link
             href="/receipts?range=today"
-            className="relative flex items-end justify-between gap-4 border border-border border-t-2 border-t-primary bg-card p-5 inset-highlight transition-colors active:bg-muted/60"
+            className="relative flex items-end justify-between gap-4 rounded-lg border border-border bg-card p-5 inset-highlight transition-colors active:bg-muted/60"
           >
-            <CornerAccents />
             <div className="min-w-0">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Sales today</p>
               <p className="truncate text-3xl font-semibold tabular-nums">{formatNairaShort(d.today.amount)}</p>
@@ -83,8 +80,7 @@ export default async function HomePage() {
               {formatNairaShort(d.owing.amount)}
             </span>
           </div>
-          <ul className="relative divide-y divide-border border border-gold/25 bg-gold/5">
-            <CornerAccents />
+          <ul className="relative divide-y divide-border overflow-hidden rounded-lg border border-gold/25 bg-gold/5">
             {d.debtors.map((x) => (
               <li key={`${x.customerId}-${x.name}`}>
                 <Link

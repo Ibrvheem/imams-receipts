@@ -3,6 +3,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { DynamicBreadcrumb } from "@/components/dynamic-breadcrumb";
 import { MobileNav } from "@/components/mobile-nav";
 import { MobileTopBar } from "@/components/mobile-top-bar";
+import { SwipeTabs } from "@/components/swipe-tabs";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -37,7 +38,9 @@ export default async function layout({ children }: { children: ReactNode }) {
             </Suspense>
           </div>
         </header>
-        <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+        <div className="flex flex-1 flex-col gap-4 p-4">
+          <SwipeTabs>{children}</SwipeTabs>
+        </div>
         <MobileNav />
       </SidebarInset>
     </SidebarProvider>
