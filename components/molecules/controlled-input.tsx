@@ -37,6 +37,7 @@ export default function ControlledInput({
   enterKeyHint,
   ariaLabel,
   autoFocus,
+  autoComplete,
 }: {
   name: string;
   label?: string;
@@ -67,6 +68,7 @@ export default function ControlledInput({
   /** Accessible name when the field has no visible label */
   ariaLabel?: string;
   autoFocus?: boolean;
+  autoComplete?: string;
 }) {
   const [showPassword, setShowPassword] = useState(false);
   const [hasShownError, setHasShownError] = useState(false);
@@ -134,6 +136,7 @@ export default function ControlledInput({
                   enterKeyHint={enterKeyHint}
                   aria-label={ariaLabel}
                   autoFocus={autoFocus}
+                  autoComplete={autoComplete}
                   type={showPassword ? "text" : type}
                   style={icon ? { paddingLeft: "42px" } : undefined}
                   {...field}

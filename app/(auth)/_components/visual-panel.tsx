@@ -1,11 +1,11 @@
-import { APP_NAME } from "@/lib/config";
+import { BUSINESS } from "@/lib/config";
 
 // Decorative left panel for the auth screens. Replace the headline, copy, and
 // highlight rows with your product's own marketing content.
 const HIGHLIGHTS = [
-  { id: "01", label: "First product highlight", detail: "Lorem" },
-  { id: "02", label: "Second product highlight", detail: "Ipsum" },
-  { id: "03", label: "Third product highlight", detail: "Dolor" },
+  { id: "01", label: "Clean PDF receipts in seconds", detail: "PDF" },
+  { id: "02", label: "Every receipt saved and searchable", detail: "History" },
+  { id: "03", label: "Sales and balances at a glance", detail: "Totals" },
 ];
 
 export function VisualPanel() {
@@ -49,7 +49,7 @@ export function VisualPanel() {
           className="text-xl font-black uppercase tracking-[0.24em] text-foreground"
           style={{ textShadow: "0 0 10px oklch(1 0 0 / 0.35)" }}
         >
-          {APP_NAME}
+          {BUSINESS.name}
         </span>
       </div>
 
@@ -59,20 +59,20 @@ export function VisualPanel() {
           className="m-0 text-[48px] leading-[1.04] font-black uppercase text-foreground"
           style={{ letterSpacing: "-0.01em" }}
         >
-          Your headline
+          Every sale,
           <br />
-          goes here.
+          on record.
           <br />
-          <span style={{ color: "var(--primary-hi)" }}>Make it </span>
-          <span className="text-primary">count.</span>
+          <span style={{ color: "var(--primary-hi)" }}>Every </span>
+          <span className="text-primary">receipt.</span>
         </h1>
 
         <p
           className="mt-4.5 text-[14px] leading-[1.7] text-muted-foreground"
           style={{ maxWidth: 380, letterSpacing: "0.02em" }}
         >
-          A sentence or two about what your product does and why people should
-          sign up for it.
+          Issue receipts, keep track of customers and see what&apos;s still
+          owed, all from your phone.
         </p>
       </div>
 
@@ -83,13 +83,13 @@ export function VisualPanel() {
             className="text-[11px] font-semibold text-faint"
             style={{ letterSpacing: "0.2em" }}
           >
-            HIGHLIGHTS
+            WHAT YOU GET
           </span>
           <span
             className="text-[11px] font-semibold text-win"
             style={{ letterSpacing: "0.1em" }}
           >
-            ▲ LIVE
+            
           </span>
         </div>
         <div className="flex flex-col gap-1.75">

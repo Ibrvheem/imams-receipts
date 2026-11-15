@@ -1,47 +1,40 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { SignInPayload, signInPayload } from "../types";
-import { toast } from "sonner";
-import { SignIn } from "../service";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { SignInPayload, signInPayload } from "../types";
+import { SignIn } from "../service";
 
-export function useSignIn() {
+export function useSignIn(callbackUrl = "/home") {
   const form = useForm({
     resolver: zodResolver(signInPayload),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
-  const { push } = useRouter();
+  const router = useRouter();
   const {
     handleSubmit,
     formState: { isSubmitting },
   } = form;
+
   const onSubmit = handleSubmit(async (data: SignInPayload) => {
     try {
       const response = await SignIn(data);
-
       if (!response.success) {
-        if (response.status_code === 403) {
-          // A 403 means an unverified account. The backend has already re-sent
-          // the verification code; route to the verification step.
-          push(`/email-verification?email=${encodeURIComponent(data.email)}`);
-        }
-
-        toast.info(response.message);
+        toast.error(response.message);
         return;
       }
       toast.success(response.message);
-      push("/home");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "An error occurred");
+      // Only same-site paths, never an open redirect.
+      const next =
+        callbackUrl.startsWith("/") && !callbackUrl.startsWith("//")
+          ? callbackUrl
+          : "/home";
+      router.replace(next);
+      router.refresh();
+    } catch {
+      toast.error("Couldn't sign in. Check your connection and try again.");
     }
   });
 
-  return {
-    form,
-    onSubmit,
-    isSubmitting,
-  };
+  return { form, onSubmit, isSubmitting };
 }

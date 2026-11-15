@@ -14,20 +14,28 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
-import { APP_NAME } from "@/lib/config";
+import { BUSINESS } from "@/lib/config";
 
 // Add your app's navigation here. Badge counts can be wired in via the
 // `badges` map below (e.g. unread counts fetched from a provider).
 const navMain = [
   {
-    title: "Platform",
-    items: [{ title: "Home", url: "/home" }],
+    title: "Menu",
+    items: [
+      { title: "Home", url: "/home" },
+      { title: "New receipt", url: "/receipts/new" },
+      { title: "Receipts", url: "/receipts" },
+      { title: "Customers", url: "/customers" },
+    ],
   },
 ];
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  // On phones the sidebar is a sheet — close it once she picks a page.
+  const { setOpenMobile } = useSidebar();
 
   const badges: Record<string, number> = {};
 
@@ -38,7 +46,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           href="/home"
           className="flex h-16 items-center justify-center text-lg font-black uppercase tracking-[0.2em] text-foreground"
         >
-          {APP_NAME}
+          {BUSINESS.name}
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -49,12 +57,19 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               <LayoutGroup id="sidebar-nav">
                 <SidebarMenu>
                   {group.items.map((item) => {
-                    const isActive = pathname === item.url || pathname.startsWith(item.url + "/");
+                    const isActive =
+                      pathname === item.url ||
+                      (pathname.startsWith(item.url + "/") &&
+                        !pathname.startsWith("/receipts/new"));
                     const badge = badges[item.url];
                     return (
                       <SidebarMenuItem key={item.title}>
                         <SidebarMenuButton asChild isActive={isActive}>
-                          <Link href={item.url} className="relative overflow-hidden">
+                          <Link
+                            href={item.url}
+                            onClick={() => setOpenMobile(false)}
+                            className="relative overflow-hidden"
+                          >
                             {isActive && (
                               <motion.div
                                 layoutId="active-sidebar-pill"

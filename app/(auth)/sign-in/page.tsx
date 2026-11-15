@@ -1,7 +1,17 @@
 import { SignInForm } from "@/components/login-form";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/dal";
 import { VisualPanel } from "../_components/visual-panel";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string }>;
+}) {
+  // Already signed in (valid session) → straight to the app.
+  if (await getCurrentUser()) redirect("/home");
+  const { callbackUrl } = await searchParams;
+
   return (
     <div className="min-h-svh grid md:grid-cols-[1.05fr_0.95fr] bg-background overflow-hidden">
       <VisualPanel />
@@ -21,7 +31,7 @@ export default function LoginPage() {
           }}
         />
 
-        <SignInForm />
+        <SignInForm callbackUrl={callbackUrl} />
       </div>
     </div>
   );

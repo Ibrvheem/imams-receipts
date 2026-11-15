@@ -11,7 +11,11 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Fragment } from "react";
 
+const ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function toLabel(segment: string) {
+  // Record ids aren't meaningful to read — the page title names the record.
+  if (ID.test(segment)) return "Details";
   return segment
     .split("-")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
