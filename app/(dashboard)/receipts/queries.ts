@@ -17,6 +17,7 @@ export const PAGE_SIZE = 20;
 
 const withItems = {
   items: { orderBy: { position: "asc" } },
+  payments: { orderBy: [{ date: "asc" }, { createdAt: "asc" }] },
 } satisfies Prisma.ReceiptInclude;
 
 type ReceiptWithItems = Prisma.ReceiptGetPayload<{ include: typeof withItems }>;
@@ -44,6 +45,13 @@ export function toRecord(r: ReceiptWithItems): ReceiptRecord {
     paymentMethod: r.paymentMethod,
     note: r.note,
     createdAt: r.createdAt.toISOString(),
+    payments: r.payments.map((p) => ({
+      id: p.id,
+      date: dbDateToIso(p.date),
+      amount: Number(p.amount),
+      method: p.method,
+      initial: p.initial,
+    })),
   };
 }
 
@@ -153,7 +161,7 @@ export async function getDashboard() {
       _sum: { total: true },
       _count: true,
     });
-  const [day, week, month, owing, recent, debtors] = await Promise.all([
+  const [day, week, month, owing, recent, debtors, collected] = await Promise.all([
     sales(today),
     sales(startOfWeek(today)),
     sales(startOfMonth(today)),
@@ -176,6 +184,11 @@ export async function getDashboard() {
       orderBy: { _sum: { balance: "desc" } },
       take: 4,
     }),
+    // Money actually received today, including payments on older receipts.
+    prisma.payment.aggregate({
+      where: { date: isoToDbDate(today) },
+      _sum: { amount: true },
+    }),
   ]);
   const stat = (a: typeof day) => ({
     amount: Number(a._sum.total ?? 0),
@@ -186,6 +199,7 @@ export async function getDashboard() {
     week: stat(week),
     month: stat(month),
     owing: { amount: Number(owing._sum.balance ?? 0), count: owing._count },
+    collectedToday: Number(collected._sum.amount ?? 0),
     recent: recent.map(toRow),
     debtors: debtors.map((d) => ({
       customerId: d.customerId,

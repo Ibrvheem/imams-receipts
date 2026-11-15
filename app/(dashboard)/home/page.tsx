@@ -60,7 +60,12 @@ export default async function HomePage() {
             <div className="min-w-0">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Sales today</p>
               <p className="truncate text-3xl font-semibold tabular-nums">{formatNairaShort(d.today.amount)}</p>
-              <p className="text-sm text-muted-foreground">{count(d.today.count)}</p>
+              <p className="text-sm text-muted-foreground">
+                {count(d.today.count)}
+                {/* Cash in today, including balances paid on older receipts */}
+                {" · "}
+                <span className="text-win">{formatNairaShort(d.collectedToday)} collected</span>
+              </p>
             </div>
             <ArrowRight className="mb-1 size-5 shrink-0 text-muted-foreground" />
           </Link>

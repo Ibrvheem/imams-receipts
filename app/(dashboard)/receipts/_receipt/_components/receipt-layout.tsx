@@ -59,7 +59,9 @@ export const styles = {
     borderBottomColor: INK,
   },
   logo: { width: 44, height: 44, marginRight: 12, objectFit: "contain" },
-  bizName: { fontSize: 16, fontWeight: 700 },
+  // Explicit lineHeight: react-pdf inherits the page's as a fixed size,
+  // which squeezes larger text into the line below.
+  bizName: { fontSize: 16, fontWeight: 700, lineHeight: 1.3, marginBottom: 2 },
   muted: { color: MUTED },
   headerRight: { alignItems: "flex-end" },
   title: { fontSize: 22, fontWeight: 700, letterSpacing: 2, lineHeight: 1.15 },
@@ -170,19 +172,45 @@ export const styles = {
     transform: "rotate(-30deg)",
   },
   watermarkLogo: { width: 300, height: 300, objectFit: "contain", opacity: 0.06 },
+  // Payment history (under the totals) and the payment slip.
+  payments: { marginTop: 18, marginLeft: "auto", width: 300 },
+  payRow: {
+    flexDirection: "row",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderBottomWidth: 0.75,
+    borderBottomColor: RULE,
+  },
+  payDate: { width: 90, color: MUTED },
+  payMethod: { flex: 1, color: MUTED },
+  payAmt: { width: 100, textAlign: "right" },
+  slipAmount: {
+    marginTop: 4,
+    padding: 16,
+    backgroundColor: SOFT,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  slipFigure: { fontSize: 22, fontWeight: 700, lineHeight: 1.2 },
 } satisfies Record<string, Style>;
 
 const s = styles;
+
+export type LayoutPayment = { date: string; amount: number; method: string; initial?: boolean };
 
 export function ReceiptLayout({
   receipt,
   P,
   assetBase = "",
+  payments,
 }: {
   receipt: ReceiptDraft;
   P: Primitives;
   /** Prefix for /public assets (react-pdf needs an absolute URL). */
   assetBase?: string;
+  /** Saved payments, oldest first. Listed once there's more than the opening one. */
+  payments?: LayoutPayment[];
 }) {
   const { View, Text, Image } = P;
   const totals = computeTotals(receipt);
@@ -302,6 +330,19 @@ export function ReceiptLayout({
         </Text>
       </View>
 
+      {payments?.some((p) => !p.initial) ? (
+        <View style={s.payments} wrap={false}>
+          <Text style={[s.label, { paddingHorizontal: 8 }]}>Payments</Text>
+          {payments.map((p, i) => (
+            <View style={s.payRow} key={i}>
+              <Text style={s.payDate}>{dayjs(p.date).format("D MMM YYYY")}</Text>
+              <Text style={s.payMethod}>{p.method}</Text>
+              <Text style={s.payAmt}>{formatNaira(p.amount)}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
+
       {receipt.note ? (
         <View style={s.note} wrap={false}>
           <Text style={s.label}>Note</Text>
@@ -315,6 +356,118 @@ export function ReceiptLayout({
       {/* Watermark last, so it lies over everything (incl. shaded boxes) — at
           this opacity text stays readable and it's harder to edit out. Uses
           the logo once one is set in lib/config.ts, otherwise the name. */}
+      <View style={s.watermarkWrap} fixed>
+        {BUSINESS.logo ? (
+          // eslint-disable-next-line jsx-a11y/alt-text
+          <Image style={s.watermarkLogo} src={`${assetBase}${BUSINESS.logo}`} />
+        ) : (
+          <Text style={s.watermarkText}>{BUSINESS.name.toUpperCase()}</Text>
+        )}
+      </View>
+    </>
+  );
+}
+
+/**
+ * Payment slip: proof of one payment towards a receipt (the optional
+ * per-payment document; the updated receipt is the default).
+ */
+export function PaymentSlipLayout({
+  P,
+  assetBase = "",
+  slipNumber,
+  receiptNumber,
+  customerName,
+  customerPhone,
+  payment,
+  total,
+  paidToDate,
+}: {
+  P: Primitives;
+  assetBase?: string;
+  slipNumber: string;
+  receiptNumber: string;
+  customerName: string;
+  customerPhone?: string | null;
+  payment: LayoutPayment;
+  total: number;
+  /** Including this payment. */
+  paidToDate: number;
+}) {
+  const { View, Text, Image } = P;
+  const balance = Math.max(total - paidToDate, 0);
+  const contact = [BUSINESS.phone, BUSINESS.email].filter(Boolean).join("  ·  ");
+  return (
+    <>
+      <View style={s.header}>
+        <View style={s.row}>
+          {BUSINESS.logo ? (
+            // eslint-disable-next-line jsx-a11y/alt-text
+            <Image style={s.logo} src={`${assetBase}${BUSINESS.logo}`} />
+          ) : null}
+          <View>
+            <Text style={s.bizName}>{BUSINESS.name}</Text>
+            {BUSINESS.tagline ? <Text style={s.muted}>{BUSINESS.tagline}</Text> : null}
+            {BUSINESS.address ? (
+              <Text style={[s.muted, { marginTop: 4, maxWidth: 220 }]}>{BUSINESS.address}</Text>
+            ) : null}
+            {contact ? <Text style={s.muted}>{contact}</Text> : null}
+          </View>
+        </View>
+        <View style={s.headerRight}>
+          <Text style={[s.title, { fontSize: 18 }]}>PAYMENT RECEIPT</Text>
+          <View style={[s.metaRow, { marginTop: 8 }]}>
+            <Text style={s.metaLabel}>No.</Text>
+            <Text style={s.metaValue}>{slipNumber}</Text>
+          </View>
+          <View style={s.metaRow}>
+            <Text style={s.metaLabel}>Date</Text>
+            <Text style={s.metaValue}>{dayjs(payment.date).format("D MMM YYYY")}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={s.section}>
+        <View style={{ maxWidth: 280 }}>
+          <Text style={s.label}>Received from</Text>
+          <Text style={s.customer}>{customerName}</Text>
+          {customerPhone ? <Text style={s.muted}>{customerPhone}</Text> : null}
+        </View>
+        <View style={s.headerRight}>
+          <Text style={s.label}>Towards receipt</Text>
+          <Text style={s.metaValue}>{receiptNumber}</Text>
+        </View>
+      </View>
+
+      <View style={s.slipAmount}>
+        <View>
+          <Text style={s.label}>Amount received</Text>
+          <Text style={s.muted}>Paid by {payment.method}</Text>
+        </View>
+        <Text style={s.slipFigure}>{formatNaira(payment.amount)}</Text>
+      </View>
+
+      <View style={s.totals} wrap={false}>
+        <View style={s.totalRow}>
+          <Text style={s.muted}>Receipt total</Text>
+          <Text>{formatNaira(total)}</Text>
+        </View>
+        <View style={s.totalRow}>
+          <Text style={s.muted}>Paid to date</Text>
+          <Text>{formatNaira(paidToDate)}</Text>
+        </View>
+        <View style={s.grand}>
+          <Text>Balance</Text>
+          <Text>{formatNaira(balance)}</Text>
+        </View>
+        <Text style={[s.status, balance === 0 ? s.paid : s.partial]}>
+          {balance === 0 ? "PAID IN FULL" : "PART PAYMENT"}
+        </Text>
+      </View>
+
+      <Text style={s.footer} fixed>
+        Thank you for your patronage — {BUSINESS.name}
+      </Text>
       <View style={s.watermarkWrap} fixed>
         {BUSINESS.logo ? (
           // eslint-disable-next-line jsx-a11y/alt-text

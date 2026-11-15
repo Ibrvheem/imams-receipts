@@ -97,6 +97,8 @@ export function ReceiptForm({
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
 
+  // Payments recorded after the sale lock the status/amount fields.
+  const laterPayments = !!initial?.payments.some((p) => !p.initial);
   const showBalance = values.partPayment && totals.balance > 0;
   const saveLabel = initial ? "Save changes" : "Save receipt";
   const saveIcon = saving ? <Loader2 className="animate-spin" /> : <Save />;
@@ -254,7 +256,28 @@ export function ReceiptForm({
               </Panel>
 
               <Panel title="Payment">
-                {/* Grouped so the panel's gap doesn't jump as the amount box folds */}
+                {laterPayments ? (
+                  // Payments were recorded after the sale: they're managed on
+                  // the receipt page, not here.
+                  <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+                    <p>
+                      <span className="font-medium tabular-nums">{formatNaira(initial!.amountPaid)}</span>{" "}
+                      paid in {initial!.payments.length} payments
+                      {totals.total - initial!.amountPaid > 0.005 && (
+                        <>
+                          {" · "}
+                          <span className="text-gold tabular-nums">
+                            {formatNaira(Math.max(totals.total - initial!.amountPaid, 0))} owed
+                          </span>
+                        </>
+                      )}
+                    </p>
+                    <p className="text-muted-foreground">
+                      Record or remove payments from the receipt page.
+                    </p>
+                  </div>
+                ) : (
+                // Grouped so the panel's gap doesn't jump as the amount box folds
                 <div>
                   <ChipField name="partPayment" label="Status" options={PAYMENT_STATUS} />
                   <Collapse open={!!values.partPayment} className="space-y-1 pt-4">
@@ -275,7 +298,12 @@ export function ReceiptForm({
                     </p>
                   </Collapse>
                 </div>
-                <ChipField name="paymentMethod" label="Paid by" options={PAYMENT_METHODS} />
+                )}
+                <ChipField
+                  name="paymentMethod"
+                  label={laterPayments ? "First payment by" : "Paid by"}
+                  options={PAYMENT_METHODS}
+                />
                 <OptionalField name="note" addLabel="Add note">
                   {() => (
                     <ControlledTextarea
@@ -309,7 +337,7 @@ export function ReceiptForm({
           <p className="hidden text-xs uppercase tracking-[0.14em] text-muted-foreground lg:block">
             Live preview
           </p>
-          <ReceiptPreview receipt={values} />
+          <ReceiptPreview receipt={values} payments={initial?.payments} />
         </div>
       </div>
 

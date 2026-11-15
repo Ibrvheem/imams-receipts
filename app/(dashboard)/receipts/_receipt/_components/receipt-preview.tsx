@@ -9,6 +9,7 @@ import {
   A4,
   ReceiptLayout,
   styles,
+  type LayoutPayment,
   type Primitives,
   type Style,
 } from "./receipt-layout";
@@ -72,7 +73,13 @@ const pageCss: CSSProperties = {
   overflowWrap: "anywhere",
 };
 
-export function ReceiptPreview({ receipt }: { receipt: ReceiptDraft }) {
+export function ReceiptPreview({
+  receipt,
+  payments,
+}: {
+  receipt: ReceiptDraft;
+  payments?: LayoutPayment[];
+}) {
   const outer = useRef<HTMLDivElement>(null);
   const inner = useRef<HTMLDivElement>(null);
   const [fit, setFit] = useState<{ scale: number; height: number } | null>(
@@ -115,7 +122,7 @@ export function ReceiptPreview({ receipt }: { receipt: ReceiptDraft }) {
           transformOrigin: "top left",
         }}
       >
-        <ReceiptLayout receipt={receipt} P={htmlPrimitives} />
+        <ReceiptLayout receipt={receipt} P={htmlPrimitives} payments={payments} />
       </div>
     </div>
   );

@@ -68,6 +68,7 @@ model Receipt {
   createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz
   items           ReceiptItem[]
+  payments        Payment[]
 
   @@index([date])
   @@index([customerId])
@@ -85,4 +86,22 @@ model ReceiptItem {
 
   @@index([receiptId])
   @@map("receipt_items")
+}
+
+/// Money received towards a receipt. The receipt's amountPaid/balance are
+/// kept in sync with the sum of these.
+model Payment {
+  id        String   @id @default(uuid()) @db.Uuid
+  receiptId String   @map("receipt_id") @db.Uuid
+  receipt   Receipt  @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  amount    Decimal  @db.Decimal(14, 2)
+  date      DateTime @db.Date
+  method    String
+  /// The payment taken when the receipt was issued (edited with the receipt).
+  initial   Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([receiptId])
+  @@index([date])
+  @@map("payments")
 }

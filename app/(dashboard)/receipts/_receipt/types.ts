@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { computeTotals } from "./totals";
 
 export const PAYMENT_METHODS = [
   { label: "Cash", value: "Cash" },
@@ -27,7 +28,7 @@ export const receiptItemSchema = z.object({
   ),
 });
 
-export const receiptSchema = z.object({
+const receiptFields = z.object({
   /** Shown on the preview; the server confirms or replaces it on save. */
   receiptNumber: z.string().trim().min(1, "Receipt number is required"),
   date: z.date({ required_error: "Date is required" }),
@@ -45,13 +46,33 @@ export const receiptSchema = z.object({
   note: z.string().trim().optional(),
 });
 
+/** Part payments can't exceed what's owed. */
+function checkPaid(
+  r: { partPayment?: boolean; amountPaid: number; items: unknown[]; discount: number },
+  ctx: z.RefinementCtx,
+) {
+  if (!r.partPayment) return;
+  const { total } = computeTotals(r as Parameters<typeof computeTotals>[0]);
+  if (r.amountPaid > total + 0.005) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["amountPaid"],
+      message: "Can't be more than the total",
+    });
+  }
+}
+
+export const receiptSchema = receiptFields.superRefine(checkPaid);
+
 /**
  * What the form sends to the server. The date travels as "YYYY-MM-DD" so a
  * server in another timezone can't shift it by a day.
  */
-export const receiptInputSchema = receiptSchema.extend({
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date is required"),
-});
+export const receiptInputSchema = receiptFields
+  .extend({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date is required"),
+  })
+  .superRefine(checkPaid);
 export type ReceiptInput = z.infer<typeof receiptInputSchema>;
 
 /** A saved receipt as pages and client components receive it. */
@@ -74,6 +95,17 @@ export type ReceiptRecord = {
   paymentMethod: string;
   note: string | null;
   createdAt: string;
+  /** Oldest first. `initial` = paid when the receipt was issued. */
+  payments: ReceiptPayment[];
+};
+
+export type ReceiptPayment = {
+  id: string;
+  /** "YYYY-MM-DD" */
+  date: string;
+  amount: number;
+  method: string;
+  initial: boolean;
 };
 
 /** Validated receipt — what goes into the PDF. */

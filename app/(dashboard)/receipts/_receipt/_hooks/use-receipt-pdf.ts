@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
-import type { Receipt } from "../types";
 
 type Action = "download" | "share";
 
@@ -32,9 +31,14 @@ function saveFile(file: File) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/** Download / share a saved receipt as a PDF. */
-export function useReceiptPdf(receipt: Receipt) {
-  const [busy, setBusy] = useState<Action | null>(null);
+export type PdfBuilder = () => Promise<File>;
+
+/**
+ * Download / share PDFs. `busy` holds the key of the document being built
+ * ("receipt", or a payment id for slips) and the action.
+ */
+export function usePdfActions() {
+  const [busy, setBusy] = useState<{ key: string; action: Action } | null>(null);
   const canShare = useSyncExternalStore(noSubscribe, canShareFiles, () => false);
 
   // Warm up the PDF code in the background so the first tap is quick.
@@ -43,12 +47,10 @@ export function useReceiptPdf(receipt: Receipt) {
     return () => clearTimeout(warm);
   }, []);
 
-  const run = async (action: Action) => {
-    setBusy(action);
+  const run = async (key: string, action: Action, build: PdfBuilder) => {
+    setBusy({ key, action });
     try {
-      // react-pdf is heavy — load it only when a PDF is actually needed.
-      const { buildReceiptPdf } = await import("../_components/receipt-pdf");
-      const file = await buildReceiptPdf(receipt);
+      const file = await build();
       if (action === "share") {
         const share = () =>
           navigator.share({ files: [file], title: file.name }).catch((error) => {
@@ -61,14 +63,14 @@ export function useReceiptPdf(receipt: Receipt) {
           // Safari only allows sharing straight after a tap; building the
           // PDF can take too long. Offer a fresh tap instead.
           if ((error as Error)?.name !== "NotAllowedError") throw error;
-          toast("Receipt is ready", {
+          toast(`${file.name.replace(/\.pdf$/, "")} is ready`, {
             action: { label: "Share", onClick: () => void share() },
             duration: 15000,
           });
         }
       } else {
         saveFile(file);
-        toast.success("Receipt downloaded");
+        toast.success("Downloaded");
       }
     } catch (error) {
       console.error(error);
@@ -81,7 +83,7 @@ export function useReceiptPdf(receipt: Receipt) {
   return {
     busy,
     canShare,
-    download: () => run("download"),
-    share: () => run("share"),
+    download: (key: string, build: PdfBuilder) => run(key, "download", build),
+    share: (key: string, build: PdfBuilder) => run(key, "share", build),
   };
 }

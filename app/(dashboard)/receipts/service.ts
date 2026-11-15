@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/dal";
 import { prisma } from "@/lib/prisma";
-import { isoToDbDate } from "@/lib/dates";
+import { isoToDbDate, todayInLagos } from "@/lib/dates";
 import { Prisma } from "@/lib/generated/prisma/client";
 import { receiptInputSchema } from "./_receipt/types";
 import { computeTotals, generateReceiptNumber } from "./_receipt/totals";
@@ -68,6 +68,21 @@ export async function saveReceipt(
   redirect(`/receipts/${result.id}?saved=${id ? "edit" : "new"}`);
 }
 
+const r2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Recomputes a receipt's paid/balance from its payments. */
+async function syncPaid(tx: Prisma.TransactionClient, receiptId: string) {
+  const receipt = await tx.receipt.findUniqueOrThrow({ where: { id: receiptId }, select: { total: true } });
+  const sum = await tx.payment.aggregate({ where: { receiptId }, _sum: { amount: true } });
+  const paid = r2(Number(sum._sum.amount ?? 0));
+  const balance = Math.max(r2(Number(receipt.total) - paid), 0);
+  await tx.receipt.update({
+    where: { id: receiptId },
+    data: { amountPaid: paid, balance, partPayment: balance > 0 },
+  });
+  return { paid, balance };
+}
+
 async function persist(raw: unknown, userId: string, id?: string): Promise<SaveResult> {
   const parsed = receiptInputSchema.safeParse(raw);
   if (!parsed.success) {
@@ -75,17 +90,19 @@ async function persist(raw: unknown, userId: string, id?: string): Promise<SaveR
   }
   const input = parsed.data;
   const totals = computeTotals(input);
+  if (totals.paid > totals.total + 0.005) {
+    return { success: false, message: "Amount paid can't be more than the total." };
+  }
 
+  const date = isoToDbDate(input.date);
   const data = {
-    date: isoToDbDate(input.date),
+    date,
     customerName: input.customerName.trim(),
     customerPhone: blank(input.customerPhone),
     customerAddress: blank(input.customerAddress),
     subtotal: totals.subtotal,
     discount: totals.discount,
     total: totals.total,
-    amountPaid: totals.paid,
-    balance: totals.balance,
     partPayment: input.partPayment,
     paymentMethod: input.paymentMethod,
     note: blank(input.note),
@@ -96,21 +113,51 @@ async function persist(raw: unknown, userId: string, id?: string): Promise<SaveR
     quantity: item.quantity,
     unitPrice: item.unitPrice,
   }));
+  // What was paid when the receipt was issued.
+  const initialPayment = (amount: number) =>
+    amount > 0 ? { amount: r2(amount), date, method: input.paymentMethod, initial: true } : null;
 
   try {
     if (id) {
-      const saved = await prisma.$transaction(async (tx) => {
+      const outcome = await prisma.$transaction(async (tx) => {
+        const later = await tx.payment.aggregate({
+          where: { receiptId: id, initial: false },
+          _sum: { amount: true },
+        });
+        const laterPaid = r2(Number(later._sum.amount ?? 0));
+        const initial = await tx.payment.findFirst({ where: { receiptId: id, initial: true } });
+        const initialPaid = Number(initial?.amount ?? 0);
+
+        if (laterPaid > 0) {
+          // Payments recorded since: those stay as they are; the total just
+          // can't drop below what's already been paid.
+          if (totals.total + 0.005 < r2(initialPaid + laterPaid)) {
+            return { error: `The total can't be less than the ₦${(initialPaid + laterPaid).toLocaleString("en-NG")} already paid.` };
+          }
+          if (initial) {
+            await tx.payment.update({ where: { id: initial.id }, data: { date, method: input.paymentMethod } });
+          }
+        } else {
+          // No later payments: the form's "amount paid" is the initial payment.
+          await tx.payment.deleteMany({ where: { receiptId: id, initial: true } });
+          const pay = initialPayment(totals.paid);
+          if (pay) await tx.payment.create({ data: { ...pay, receiptId: id } });
+        }
+
         const customerId = await resolveCustomer(tx, {
           ...input,
           customerId: input.customerId || undefined,
         });
         await tx.receiptItem.deleteMany({ where: { receiptId: id } });
-        return tx.receipt.update({
+        const saved = await tx.receipt.update({
           where: { id },
           data: { ...data, customerId, items: { create: items } },
         });
+        await syncPaid(tx, id);
+        return { saved };
       }, TX);
-      return { success: true, id: saved.id, number: saved.number };
+      if ("error" in outcome) return { success: false, message: outcome.error as string };
+      return { success: true, id: outcome.saved.id, number: outcome.saved.number };
     }
 
     // Keep the number shown on the preview when it's free; otherwise pick a
@@ -125,13 +172,17 @@ async function persist(raw: unknown, userId: string, id?: string): Promise<SaveR
             ...input,
             customerId: input.customerId || undefined,
           });
+          const pay = initialPayment(totals.paid);
           return tx.receipt.create({
             data: {
               ...data,
               number,
               customerId,
+              amountPaid: r2(totals.paid),
+              balance: r2(totals.balance),
               createdById: userId,
               items: { create: items },
+              ...(pay ? { payments: { create: pay } } : {}),
             },
           });
         }, TX);
@@ -188,25 +239,53 @@ export async function searchCustomers(query: string): Promise<CustomerSuggestion
   });
 }
 
-/** Adds a payment towards a receipt's balance (never above the total). */
-export async function recordPayment(id: string, amount: number) {
+/** Records money received towards a receipt's balance. */
+export async function recordPayment(id: string, amount: number, method: string) {
   await requireUser();
-  if (!Number.isFinite(amount) || amount <= 0) {
+  const value = r2(amount);
+  if (!Number.isFinite(value) || value <= 0) {
     return { success: false as const, message: "Enter an amount above ₦0." };
   }
-  const receipt = await prisma.receipt.findUnique({
-    where: { id },
-    select: { total: true, amountPaid: true },
-  });
-  if (!receipt) return { success: false as const, message: "This receipt no longer exists." };
+  if (!method.trim()) {
+    return { success: false as const, message: "Choose how they paid." };
+  }
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const receipt = await tx.receipt.findUnique({ where: { id }, select: { balance: true } });
+      if (!receipt) return { error: "This receipt no longer exists." };
+      const balance = Number(receipt.balance);
+      if (value > balance + 0.005) {
+        return { error: `That's more than the ₦${balance.toLocaleString("en-NG")} balance.` };
+      }
+      const payment = await tx.payment.create({
+        data: { receiptId: id, amount: value, method: method.trim(), date: isoToDbDate(todayInLagos()) },
+      });
+      const totals = await syncPaid(tx, id);
+      return { paymentId: payment.id, ...totals };
+    }, TX);
+    if ("error" in result) return { success: false as const, message: result.error as string };
+    revalidatePath("/", "layout");
+    return { success: true as const, ...result };
+  } catch (error) {
+    console.error(error);
+    return { success: false as const, message: "Couldn't record the payment. Try again." };
+  }
+}
 
-  const total = Number(receipt.total);
-  const paid = Math.min(Number(receipt.amountPaid) + Math.round(amount * 100) / 100, total);
-  const balance = Math.round((total - paid) * 100) / 100;
-  await prisma.receipt.update({
-    where: { id },
-    data: { amountPaid: paid, balance, partPayment: balance > 0 },
-  });
-  revalidatePath("/", "layout");
-  return { success: true as const, balance };
+/** Removes a payment recorded by mistake (not the one taken at issue). */
+export async function deletePayment(paymentId: string) {
+  await requireUser();
+  try {
+    await prisma.$transaction(async (tx) => {
+      const payment = await tx.payment.findUnique({ where: { id: paymentId } });
+      if (!payment || payment.initial) return;
+      await tx.payment.delete({ where: { id: paymentId } });
+      await syncPaid(tx, payment.receiptId);
+    }, TX);
+    revalidatePath("/", "layout");
+    return { success: true as const };
+  } catch (error) {
+    console.error(error);
+    return { success: false as const, message: "Couldn't remove the payment. Try again." };
+  }
 }

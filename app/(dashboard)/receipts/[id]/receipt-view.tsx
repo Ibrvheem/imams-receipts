@@ -26,7 +26,9 @@ import type { ReceiptRecord } from "../_receipt/types";
 import { formatNaira } from "../_receipt/totals";
 import { recordToReceipt } from "../_receipt/records";
 import { ReceiptPreview } from "../_receipt/_components/receipt-preview";
-import { useReceiptPdf } from "../_receipt/_hooks/use-receipt-pdf";
+import { usePdfActions } from "../_receipt/_hooks/use-receipt-pdf";
+import { receiptFile } from "../_receipt/documents";
+import { PaymentList } from "./payment-list";
 import { deleteReceipt } from "../service";
 import { RecordPayment } from "./record-payment";
 
@@ -40,7 +42,11 @@ export function ReceiptView({
 }) {
   const router = useRouter();
   const data = useMemo(() => recordToReceipt(receipt), [receipt]);
-  const { busy, canShare, download, share } = useReceiptPdf(data);
+  const pdf = usePdfActions();
+  const { busy, canShare } = pdf;
+  const download = () => pdf.download("receipt", () => receiptFile(receipt));
+  const share = () => pdf.share("receipt", () => receiptFile(receipt));
+  const receiptBusy = busy?.key === "receipt" ? busy.action : null;
   const [deleting, setDeleting] = useState(false);
   const spin = <Loader2 className="animate-spin" />;
   const owing = receipt.balance > 0;
@@ -125,15 +131,16 @@ export function ReceiptView({
             <p className={owing ? "truncate text-lg font-semibold tabular-nums text-gold" : "text-lg font-semibold text-win"}>
               {owing ? formatNaira(receipt.balance) : "Paid in full"}
             </p>
-            <p className="text-xs text-muted-foreground">{receipt.paymentMethod}</p>
+            {!owing && <p className="text-xs text-muted-foreground">{receipt.paymentMethod}</p>}
           </div>
         </div>
 
         <div className="space-y-2">
-          {owing && <RecordPayment id={receipt.id} balance={receipt.balance} />}
+          {/* Stays mounted after the balance hits 0 so its "share" step can finish. */}
+          <RecordPayment receipt={receipt} pdf={pdf} showTrigger={owing} />
           <div className="flex gap-2">
             <Button onClick={download} disabled={!!busy} className="cta-btn h-12 flex-1">
-              {busy === "download" ? spin : <Download />} Download PDF
+              {receiptBusy === "download" ? spin : <Download />} Download PDF
             </Button>
             {canShare && (
               <Button
@@ -143,18 +150,20 @@ export function ReceiptView({
                 aria-label="Share receipt"
                 className="size-12 shrink-0 px-0!"
               >
-                {busy === "share" ? spin : <Share2 />}
+                {receiptBusy === "share" ? spin : <Share2 />}
               </Button>
             )}
           </div>
         </div>
+
+        <PaymentList receipt={receipt} pdf={pdf} />
       </div>
 
       <section className="space-y-2">
         <h2 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
           Receipt
         </h2>
-        <ReceiptPreview receipt={data} />
+        <ReceiptPreview receipt={data} payments={receipt.payments} />
       </section>
     </div>
   );
